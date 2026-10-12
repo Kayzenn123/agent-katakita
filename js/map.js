@@ -30,30 +30,33 @@ const KatakitaMap = (() => {
   let pins = [], found = new Set(), hoverPin = -1, frame = 0, lastT = 0;
   let dragging = false, moved = 0, lastP = null, pinchD = 0;
 
-  function buildLand() {
+  const tick = () => new Promise(r => setTimeout(r, 0));
+  async function buildLand() {
     land = document.createElement('canvas'); land.width = W; land.height = H;
     const g = land.getContext('2d');
     // laut
     g.fillStyle = '#7fa8a0'; g.fillRect(0, 0, W, H);
     // variasi laut pixel
     let s = 12345; const rnd = () => (s = (s * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff;
-    for (let y = 0; y < H; y += CELL) for (let x = 0; x < W; x += CELL) {
-      const r = rnd();
-      if (r < 0.10) { g.fillStyle = '#74a098'; g.fillRect(x, y, CELL, CELL); }
-    }
-    // darat
     const cols = Math.ceil(W / CELL), rows = Math.ceil(H / CELL);
     const grid = [];
     for (let j = 0; j < rows; j++) { grid[j] = [];
-      for (let i = 0; i < cols; i++) grid[j][i] = isLand((i+0.5)/cols, (j+0.5)/rows);
+      for (let i = 0; i < cols; i++) {
+        grid[j][i] = isLand((i+0.5)/cols, (j+0.5)/rows);
+        if (rnd() < 0.10) { g.fillStyle = '#74a098'; g.fillRect(i*CELL, j*CELL, CELL, CELL); }
+      }
+      if (j % 10 === 9) await tick(); // bagi kerja biar tidak block main thread
     }
-    for (let j = 0; j < rows; j++) for (let i = 0; i < cols; i++) {
-      if (!grid[j][i]) continue;
-      const edge = !grid[j][i-1] || !grid[j][i+1] || !grid[j-1]?.[i] || !grid[j+1]?.[i];
-      const r = rnd();
-      g.fillStyle = edge ? '#8a5a2b' : (r < 0.12 ? '#d8b878' : '#e3c184');
-      g.fillRect(i*CELL, j*CELL, CELL, CELL);
-      if (!edge && r < 0.06) { g.fillStyle = '#6f9a52'; g.fillRect(i*CELL+2, j*CELL+2, CELL-4, CELL-4); } // hutan pixel
+    for (let j = 0; j < rows; j++) {
+      for (let i = 0; i < cols; i++) {
+        if (!grid[j][i]) continue;
+        const edge = !grid[j][i-1] || !grid[j][i+1] || !grid[j-1]?.[i] || !grid[j+1]?.[i];
+        const r = rnd();
+        g.fillStyle = edge ? '#8a5a2b' : (r < 0.12 ? '#d8b878' : '#e3c184');
+        g.fillRect(i*CELL, j*CELL, CELL, CELL);
+        if (!edge && r < 0.06) { g.fillStyle = '#6f9a52'; g.fillRect(i*CELL+2, j*CELL+2, CELL-4, CELL-4); } // hutan pixel
+      }
+      if (j % 10 === 9) await tick();
     }
     // frame ombak ke-2 (di-bake, bukan digambar per-frame)
     landWave = document.createElement('canvas'); landWave.width = W; landWave.height = H;
@@ -91,8 +94,10 @@ const KatakitaMap = (() => {
     ctx.fillStyle = '#7fa8a0'; ctx.fillRect(0, 0, r.width, r.height); // laut di luar peta
     ctx.save();
     ctx.translate(r.width/2, r.height/2); ctx.scale(z, z); ctx.translate(-cam.cx, -cam.cy);
-    const waveFrame = (!reduced && !lite && (frame >> 5) % 2 === 1) ? landWave : land;
-    ctx.drawImage(waveFrame, 0, 0);
+    if (land && landWave) {
+      const waveFrame = (!reduced && !lite && (frame >> 5) % 2 === 1) ? landWave : land;
+      ctx.drawImage(waveFrame, 0, 0);
+    }
     // pin
     pins.forEach((p, i) => {
       const pulse = (!reduced && !lite) ? 1 + 0.18 * Math.sin(t/450 + i) : 1;
@@ -200,12 +205,12 @@ const KatakitaMap = (() => {
     document.addEventListener('visibilitychange', () => { /* loop tetap ringan; draw murah */ });
   }
 
-  function init(opts) {
+  async function init(opts) {
     canvas = document.getElementById('map'); ctx = canvas.getContext('2d');
     wrap = document.getElementById('mapWrap');
     onPinOpen = opts.onPinOpen; reduced = !!opts.reduced; lite = !!opts.lite;
     pins = WORDS.map(w => ({ id: w.id, wx: w.px * W, wy: w.py * H }));
-    buildLand(); resize(); clampCam(); bind();
+    resize(); clampCam(); bind();
     new IntersectionObserver(es => {
       visible = es[0].isIntersecting && !document.hidden;
       if (visible) kick();
@@ -215,6 +220,8 @@ const KatakitaMap = (() => {
       if (visible) kick();
     });
     kick();
+    await buildLand(); // berat -> di-chunk agar tidak block main thread
+    clampCam();
   }
 
   return {

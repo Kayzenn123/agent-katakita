@@ -78,7 +78,7 @@ button{font:inherit;color:inherit}
   padding:12px 18px;margin-top:8px;box-shadow:6px 6px 0 var(--line);max-width:32em}
 
 .marquee{overflow:hidden;border-top:var(--px) solid var(--line);border-bottom:var(--px) solid var(--line);
-  background:var(--accent-2);color:var(--bg);white-space:nowrap;user-select:none;
+  background:var(--accent-2);color:var(--bg);white-space:nowrap;user-select:none;min-height:56px;
   transform:rotate(var(--rot,0deg)) scale(1.02) skewX(var(--skew,0deg))}
 .marquee .track{display:inline-flex;will-change:transform;animation:marq var(--dur,24s) linear infinite}
 @keyframes marq{to{transform:translateX(-50%)}}
