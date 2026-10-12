@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>KataKita — Peta Kata Nusantara | Kamus 8-bit Bahasa Daerah</title>
+<meta name="description" content="Jelajahi 39 kata bahasa daerah Indonesia di peta pixel 8-bit. Klik pin, kumpulkan kata, selesaikan quest bareng Pak Peta.">
+<meta name="theme-color" content="#c9a86a">
+<link rel="canonical" href="https://kayzenn123.github.io/agent-katakita/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="KataKita — Peta Kata Nusantara">
+<meta property="og:description" content="Kamus bahasa daerah Indonesia dalam dunia pixel 8-bit. Seret peta, klik pin, kumpulkan kata!">
+<meta property="og:image" content="https://kayzenn123.github.io/agent-katakita/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="preload" href="fonts/kaisei-tokumin-700.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/chiron-goround-tc-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<a class="skip" href="#peta">Lompat ke peta</a>
+<div id="cursor" aria-hidden="true"></div>
+
+<header class="topbar">
+  <a class="brand" href="#hero" aria-label="KataKita - kembali ke atas">
+    <svg class="brand-pin" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0l4 4v4l-4 4-4-4V4z" fill="var(--accent)"/><path d="M8 3l2 2v2l-2 2-2-2V5z" fill="var(--bg)"/></svg>
+    <span>KATA<em>KITA</em></span>
+  </a>
+  <nav aria-label="Navigasi utama">
+    <a href="#peta">Peta</a>
+    <a href="#kata">Kata</a>
+    <a href="#favorit">Favorit <b id="favCount" aria-label="0 favorit">0</b></a>
+  </nav>
+  <button id="motionToggle" class="chip" aria-pressed="true" title="Nyalakan/matikan gerak">Gerak: Nyala</button>
+</header>
+
+<main>
+  <!-- HERO -->
+  <section id="hero" aria-labelledby="heroTitle">
+    <div class="hero-inner">
+      <p class="kicker"><span class="px">◆</span> KAMUS BAHASA DAERAH · EDISI 8-BIT <span class="px">◆</span></p>
+      <h1 id="heroTitle" aria-label="KataKita">KATAKITA</h1>
+      <p class="sub">Peta Kata Nusantara — seret, zoom, dan klik pin buat ngumpulin <b>39 kata</b> dari <b>11 bahasa daerah</b>.</p>
+      <div class="hero-cta">
+        <a href="#peta" class="btn magnetic" id="ctaStart">MULAI BERPETUALANG</a>
+        <a href="#kata" class="btn ghost magnetic">LIHAT DAFTAR KATA</a>
+      </div>
+      <p class="pakpeta-bubble" id="heroBubble">“Selamat datang, Petualang Kata! Aku <b>Pak Peta</b>, penjaga pos kata.”</p>
+    </div>
+    <div class="marquee band-a" aria-hidden="true"><div class="track"><span></span><span></span></div></div>
+    <div class="marquee band-b" aria-hidden="true"><div class="track"><span></span><span></span></div></div>
+  </section>
+
+  <!-- PETA -->
+  <section id="peta" aria-labelledby="petaTitle">
+    <div class="sec-head">
+      <h2 id="petaTitle">Peta Harta Kata</h2>
+      <p>Seret buat jalan-jalan, cubit/scroll buat zoom. Klik <b>pin berlian</b> buat buka kartunya.</p>
+    </div>
+    <div id="mapWrap" tabindex="0" role="application"
+         aria-label="Peta pixel Nusantara. Panah untuk geser, plus minus untuk zoom, nol untuk reset. Daftar semua kata juga tersedia di bagian Kata.">
+      <canvas id="map" aria-hidden="true"></canvas>
+      <div class="map-hud">
+        <div class="quest" role="status" aria-live="polite">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 14V2h2v4l3-2 3 2V2h2v12H3z" fill="currentColor"/></svg>
+          <span id="questText">Quest: temukan 5 kata “makan” (0/5)</span>
+        </div>
+        <div class="map-ctl">
+          <button id="zin" aria-label="Zoom masuk">+</button>
+          <button id="zout" aria-label="Zoom keluar">−</button>
+          <button id="zreset" aria-label="Reset tampilan peta">◎</button>
+        </div>
+      </div>
+      <div class="map-pager">
+        <button id="pinPrev" aria-label="Pin sebelumnya">◀</button>
+        <span id="pinLabel">pin 1 / 39</span>
+        <button id="pinNext" aria-label="Pin berikutnya">▶</button>
+      </div>
+      <p class="map-hint">Peta bergaya 8-bit, bukan skala akurat. Contoh kata umum sehari-hari — bisa beda tiap daerah.</p>
+    </div>
+  </section>
+
+  <!-- DAFTAR KATA -->
+  <section id="kata" aria-labelledby="kataTitle">
+    <div class="sec-head">
+      <h2 id="kataTitle">Kantong Kata</h2>
+      <p>Semua kata yang tersebar di peta, dalam satu daftar.</p>
+    </div>
+    <div class="tools">
+      <label class="search">Cari kata
+        <input id="q" type="search" inputmode="search" autocomplete="off" placeholder="cth: mangan, terima kasih, bali…" aria-label="Cari kata">
+      </label>
+      <div class="chips" id="langChips" role="group" aria-label="Filter bahasa"></div>
+      <div class="chips" id="conceptChips" role="group" aria-label="Filter arti"></div>
+    </div>
+    <p id="emptyState" class="empty" hidden>“Peta tidak menemukan kata itu, Petualang. Coba ejaan lain.” — Pak Peta</p>
+    <ul id="wordGrid" class="grid"></ul>
+  </section>
+
+  <!-- FAVORIT -->
+  <section id="favorit" aria-labelledby="favTitle">
+    <div class="sec-head">
+      <h2 id="favTitle">Favoritku</h2>
+      <p>Kata yang kamu simpan, tersimpan di perangkat ini.</p>
+    </div>
+    <p id="favEmpty" class="empty">“Kantong kata masih kosong. Klik pin di peta buat ngumpulin!” — Pak Peta</p>
+    <ul id="favGrid" class="grid"></ul>
+    <div class="fav-actions">
+      <button id="copyFav" class="btn ghost magnetic">SALIN DAFTAR</button>
+      <button id="dlFav" class="btn ghost magnetic">UNDUH JSON</button>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="marquee band-c" aria-hidden="true"><div class="track"><span></span><span></span></div></div>
+  <p><b>KataKita</b> — Peta Kata Nusantara · Hari 4, 30 Days of Code</p>
+  <p class="fine">Contoh kosakata umum, bukan kamus akademik. Ikon: Iconoir (MIT) + pixel-art sendiri. Font: Kaisei Tokumin, Chiron GoRound TC, Tilt Prism (OFL).</p>
+</footer>
+
+<!-- DIALOG KATA (NPC card) -->
+<div id="scrim" hidden></div>
+<aside id="wordCard" role="dialog" aria-modal="true" aria-labelledby="wcKata" hidden>
+  <div class="wc-head">
+    <p class="wc-npc">◆ PAK PETA ◆</p>
+    <button id="wcClose" aria-label="Tutup kartu kata">✕</button>
+  </div>
+  <p class="wc-lang"><span id="wcLang"></span> · <span id="wcKonsep"></span></p>
+  <h3 id="wcKata"></h3>
+  <p class="wc-arti">artinya: <b id="wcArti"></b></p>
+  <p class="wc-contoh" id="wcContoh"></p>
+  <div class="wc-actions">
+    <button id="wcFav" class="btn">SIMPAN ★</button>
+    <button id="wcCopy" class="btn ghost">SALIN</button>
+    <button id="wcLink" class="btn ghost">LINK</button>
+  </div>
+</aside>
+
+<div id="toast" role="status" aria-live="polite" hidden></div>
+
+<script src="js/vendor/gsap.min.js"></script>
+<script src="js/vendor/ScrollTrigger.min.js"></script>
+<script src="js/data.js"></script>
+<script src="js/map.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/motion.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
