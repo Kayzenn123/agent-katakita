@@ -14,7 +14,7 @@ Kamus 39 kata bahasa daerah Indonesia dalam dunia pixel 8-bit yang bisa diseret 
 - Toggle "Gerak: Nyala/Mati" + hormat `prefers-reduced-motion`; mode ringan otomatis (CPU/RAM kecil, Save-Data, FPS drop)
 
 ## Tech
-HTML + CSS + JS tanpa build. GSAP 3.12.5 + ScrollTrigger (self-host). Font self-host (OFL): Kaisei Tokumin, Chiron GoRound TC, Tilt Prism via Fontsource. Ikon: Iconoir (MIT, inline SVG) + pixel-art sendiri.
+HTML + CSS + JS tanpa build. GSAP 3.12.5 + ScrollTrigger (self-host). Font self-host (OFL): Kaisei Tokumin, Chiron GoRound TC, Tilt Prism via Fontsource. Ikon: pixel-art digambar sendiri sebagai SVG inline.
 
 ## Skor
 - Lighthouse: (diisi setelah ukur)

@@ -35,10 +35,21 @@ const KatakitaUI = (() => {
     }
   }
 
+  const ICONS = {
+    'makan': '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 9h12v2a6 6 0 0 1-12 0z" fill="currentColor"/><path d="M5 2l3 5M11 2L8 7" stroke="var(--surface-2)" stroke-width="2"/></svg>',
+    'tidur': '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M11 2a6 6 0 1 0 3 11A7 7 0 0 1 11 2z" fill="currentColor"/></svg>',
+    'air': '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1l5 7a5 5 0 0 1-10 0z" fill="currentColor"/><path d="M6 9a2 2 0 0 0 2 2" stroke="var(--surface-2)" stroke-width="1.6" fill="none"/></svg>',
+    'rumah': '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 8l6-5 6 5v6H9v-4H7v4H2z" fill="currentColor"/></svg>',
+    'terima kasih': '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 14S2 10 2 5.5A3.5 3.5 0 0 1 8 3a3.5 3.5 0 0 1 6 2.5C14 10 8 14 8 14z" fill="currentColor"/></svg>',
+    'saya': '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 2h4v4H6zM4 8h8v6H4z" fill="currentColor"/></svg>',
+    'istirahat': '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 3h9v7H5v3H3z" fill="currentColor"/><path d="M5 5h5v3H5z" fill="var(--surface-2)"/></svg>',
+  };
   function cardHTML(w) {
     const faved = store.favs.includes(w.id);
+    const idx = WORDS.indexOf(w) + 1;
     return `<li class="card" data-id="${w.id}">
-      <span class="k-meta">${esc(w.bahasa)} · ${esc(w.konsep)}</span>
+      <span class="k-ticket"><span class="k-num">No.${String(idx).padStart(2, '0')}</span><span class="k-ico">${ICONS[w.konsep] || ''}</span><span>${esc(w.konsep)}</span></span>
+      <span class="k-meta">${esc(w.bahasa)}</span>
       <span class="k-kata">${esc(w.kata)}</span>
       <span class="k-arti">artinya: ${esc(w.arti)}</span>
       <span class="k-contoh">${esc(w.contoh)}</span>
