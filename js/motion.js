@@ -145,21 +145,41 @@ const KatakitaMotion = (() => {
     b.textContent = reduced ? 'Gerak: Mati' : 'Gerak: Nyala';
   }
 
-  function init() {
-    gsap.registerPlugin(ScrollTrigger);
+  function loadScript(src) {
+    return new Promise((res, rej) => {
+      if (document.querySelector('script[data-lib="' + src + '"]')) return res();
+      const s = document.createElement('script');
+      s.src = src; s.dataset.lib = src; s.onload = res; s.onerror = rej;
+      document.head.appendChild(s);
+    });
+  }
+
+  async function init() {
+    if (!reduced) {
+      try {
+        await loadScript('js/vendor/gsap.min.js');
+        await loadScript('js/vendor/ScrollTrigger.min.js');
+        gsap.registerPlugin(ScrollTrigger);
+      } catch (e) { reduced = true; KatakitaMap.setReduced(true); }
+    }
     fillMarquee(document.querySelector('.band-a'), MARQ_A);
     fillMarquee(document.querySelector('.band-b'), MARQ_B);
     fillMarquee(document.querySelector('.band-c'), MARQ_C);
-    splitTitle(); marquee(); magnetic(); cursor(); curtains(); mapZoom(); fpsWatchdog();
+    if (!reduced) { splitTitle(); magnetic(); cursor(); curtains(); mapZoom(); }
+    else { document.body.classList.add('lite'); }
+    if (lite) document.body.classList.add('lite');
+    marquee(); fpsWatchdog();
     applyToggle();
     document.getElementById('motionToggle').onclick = () => {
       reduced = !reduced;
       KatakitaMap.setReduced(reduced);
-      st.forEach(s => s.kill()); tweens.forEach(t => t.kill());
-      ScrollTrigger.getAll().forEach(s => s.kill());
+      if (window.gsap) { st.forEach(s => s.kill()); tweens.forEach(t => t.kill()); }
+      if (window.ScrollTrigger) ScrollTrigger.getAll().forEach(s => s.kill());
       tweens = []; st = [];
-      gsap.set('main section', { clearProps: 'clipPath' });
-      gsap.set('#heroTitle .ch', { clearProps: 'all' });
+      if (window.gsap) {
+        gsap.set('main section', { clearProps: 'clipPath' });
+        gsap.set('#heroTitle .ch', { clearProps: 'all' });
+      }
       document.querySelectorAll('.marquee').forEach(m => m.style.removeProperty('--skew'));
       document.body.classList.remove('lite');
       init();

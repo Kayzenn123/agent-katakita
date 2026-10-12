@@ -30,8 +30,7 @@ const KatakitaMap = (() => {
   let pins = [], found = new Set(), hoverPin = -1, frame = 0, lastT = 0;
   let dragging = false, moved = 0, lastP = null, pinchD = 0;
 
-  const tick = () => new Promise(r => setTimeout(r, 0));
-  async function buildLand() {
+  function buildLand() {
     land = document.createElement('canvas'); land.width = W; land.height = H;
     const g = land.getContext('2d');
     // laut
@@ -45,9 +44,8 @@ const KatakitaMap = (() => {
         grid[j][i] = isLand((i+0.5)/cols, (j+0.5)/rows);
         if (rnd() < 0.10) { g.fillStyle = '#74a098'; g.fillRect(i*CELL, j*CELL, CELL, CELL); }
       }
-      if (j % 10 === 9) await tick(); // bagi kerja biar tidak block main thread
     }
-    for (let j = 0; j < rows; j++) {
+    for (let j = 0; j < rows; j++)
       for (let i = 0; i < cols; i++) {
         if (!grid[j][i]) continue;
         const edge = !grid[j][i-1] || !grid[j][i+1] || !grid[j-1]?.[i] || !grid[j+1]?.[i];
@@ -56,8 +54,6 @@ const KatakitaMap = (() => {
         g.fillRect(i*CELL, j*CELL, CELL, CELL);
         if (!edge && r < 0.06) { g.fillStyle = '#6f9a52'; g.fillRect(i*CELL+2, j*CELL+2, CELL-4, CELL-4); } // hutan pixel
       }
-      if (j % 10 === 9) await tick();
-    }
     // frame ombak ke-2 (di-bake, bukan digambar per-frame)
     landWave = document.createElement('canvas'); landWave.width = W; landWave.height = H;
     const w2 = landWave.getContext('2d');
@@ -205,11 +201,15 @@ const KatakitaMap = (() => {
     document.addEventListener('visibilitychange', () => { /* loop tetap ringan; draw murah */ });
   }
 
-  async function init(opts) {
+  function init(opts) {
     canvas = document.getElementById('map'); ctx = canvas.getContext('2d');
     wrap = document.getElementById('mapWrap');
     onPinOpen = opts.onPinOpen; reduced = !!opts.reduced; lite = !!opts.lite;
     pins = WORDS.map(w => ({ id: w.id, wx: w.px * W, wy: w.py * H }));
+    // tunda kerja berat sampai browser idle agar FCP/TBT tidak kena
+    const start = () => { buildLand(); clampCam(); kick(); };
+    if ('requestIdleCallback' in window) requestIdleCallback(start, { timeout: 1500 });
+    else setTimeout(start, 50);
     resize(); clampCam(); bind();
     new IntersectionObserver(es => {
       visible = es[0].isIntersecting && !document.hidden;
@@ -219,9 +219,6 @@ const KatakitaMap = (() => {
       visible = !document.hidden && wrap.getBoundingClientRect().bottom > 0;
       if (visible) kick();
     });
-    kick();
-    await buildLand(); // berat -> di-chunk agar tidak block main thread
-    clampCam();
   }
 
   return {
